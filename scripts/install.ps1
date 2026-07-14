@@ -207,17 +207,19 @@ function Invoke-HookPowerShellProcess {
     $startInfo.RedirectStandardInput = $true
     $startInfo.RedirectStandardOutput = $true
     $startInfo.RedirectStandardError = $true
-    if ($startInfo.PSObject.Properties.Name -contains 'StandardInputEncoding') {
-        $startInfo.StandardInputEncoding = New-Object System.Text.UTF8Encoding($false)
-    }
-
     $process = New-Object System.Diagnostics.Process
     $process.StartInfo = $startInfo
     if (-not $process.Start()) { throw 'Failed to start the Windows hook PowerShell probe.' }
     $stdoutTask = $process.StandardOutput.ReadToEndAsync()
     $stderrTask = $process.StandardError.ReadToEndAsync()
-    $process.StandardInput.Write($InputText)
-    $process.StandardInput.Close()
+    # Write the bytes directly. StreamWriter behavior differs between the
+    # .NET Framework and current .NET runner hosts and can emit a UTF-8 BOM;
+    # JSON.parse intentionally rejects that leading character.
+    $inputBytes = (New-Object System.Text.UTF8Encoding($false)).GetBytes($InputText)
+    $inputStream = $process.StandardInput.BaseStream
+    $inputStream.Write($inputBytes, 0, $inputBytes.Length)
+    $inputStream.Flush()
+    $inputStream.Close()
     $process.WaitForExit()
     $stdout = $stdoutTask.GetAwaiter().GetResult()
     $stderr = $stderrTask.GetAwaiter().GetResult()
