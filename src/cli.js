@@ -67,7 +67,7 @@ function probeEncodingMetadata(buffer) {
     if (index % 2 === 0) evenNulls += 1;
     else oddNulls += 1;
   }
-  return `bytes=${buffer.length},utf8Bom=${buffer.subarray(0, 3).equals(Buffer.from([0xef, 0xbb, 0xbf]))},utf16leBom=${buffer.subarray(0, 2).equals(Buffer.from([0xff, 0xfe]))},utf16beBom=${buffer.subarray(0, 2).equals(Buffer.from([0xfe, 0xff]))},evenNulls=${evenNulls},oddNulls=${oddNulls}`;
+  return `bytes=${buffer.length},utf8Bom=${buffer.subarray(0, 3).equals(Buffer.from([0xef, 0xbb, 0xbf]))},utf16leBom=${buffer.subarray(0, 2).equals(Buffer.from([0xff, 0xfe]))},utf16beBom=${buffer.subarray(0, 2).equals(Buffer.from([0xfe, 0xff]))},evenNulls=${evenNulls},oddNulls=${oddNulls},systemByteArray=${buffer.equals(Buffer.from("System.Byte[]"))},systemObject=${buffer.equals(Buffer.from("System.Object"))},systemString=${buffer.equals(Buffer.from("System.String"))}`;
 }
 
 function parseWorkspace(args) {
