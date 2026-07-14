@@ -207,6 +207,7 @@ function Invoke-HookPowerShellProcess {
     $startInfo.RedirectStandardInput = $true
     $startInfo.RedirectStandardOutput = $true
     $startInfo.RedirectStandardError = $true
+    $startInfo.EnvironmentVariables['DEEPWORK_INSTALL_PROBE'] = '1'
     $process = New-Object System.Diagnostics.Process
     $process.StartInfo = $startInfo
     if (-not $process.Start()) { throw 'Failed to start the Windows hook PowerShell probe.' }

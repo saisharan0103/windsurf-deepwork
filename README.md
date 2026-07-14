@@ -32,7 +32,7 @@ npm test
 node src/cli.js doctor
 ```
 
-The current automated suite covers 46 cases, including real stdio initialization/tool discovery, an external-project task through stdio, official hook payloads, fail-closed internal errors, hardlink/link escapes, Windows short-path aliases, trajectory isolation, hostile command forms, repeat writes, verification-time mutations, stale same-file/untracked changes, every planned command, and final Git scope enforcement.
+The current automated suite covers 51 cases, including real stdio initialization/tool discovery, an external-project task through stdio, official hook payloads, fail-closed internal errors, hardlink/link escapes, Windows short-path aliases and PowerShell encodings, trajectory isolation, hostile command forms, repeat writes, verification-time mutations, stale same-file/untracked changes, every planned command, and final Git scope enforcement.
 
 ## Install globally
 

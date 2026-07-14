@@ -10,11 +10,64 @@ import { WorkspaceStateStore } from "./state/store.js";
 import { handleHook } from "./hooks.js";
 import { redactText, safeError } from "./audit/redact.js";
 
-async function readStdin() {
-  if (process.stdin.isTTY) return "";
+async function readStdinBuffer() {
+  if (process.stdin.isTTY) return Buffer.alloc(0);
   const chunks = [];
   for await (const chunk of process.stdin) chunks.push(chunk);
-  return Buffer.concat(chunks).toString("utf8");
+  return Buffer.concat(chunks);
+}
+
+function swapUtf16Bytes(buffer) {
+  const length = buffer.length - (buffer.length % 2);
+  const swapped = Buffer.allocUnsafe(length);
+  for (let index = 0; index < length; index += 2) {
+    swapped[index] = buffer[index + 1];
+    swapped[index + 1] = buffer[index];
+  }
+  return swapped;
+}
+
+function looksLikeUtf16(buffer, nullOffset) {
+  const length = Math.min(buffer.length - (buffer.length % 2), 512);
+  if (length < 4) return false;
+  const pairs = length / 2;
+  let expectedNulls = 0;
+  let otherNulls = 0;
+  for (let index = 0; index < length; index += 2) {
+    if (buffer[index + nullOffset] === 0) expectedNulls += 1;
+    if (buffer[index + (1 - nullOffset)] === 0) otherNulls += 1;
+  }
+  return expectedNulls / pairs >= 0.6 && otherNulls / pairs <= 0.2;
+}
+
+export function decodeStdinBuffer(buffer) {
+  if (!Buffer.isBuffer(buffer) || buffer.length === 0) return "";
+  let decoded;
+  if (buffer.length >= 3 && buffer[0] === 0xef && buffer[1] === 0xbb && buffer[2] === 0xbf) {
+    decoded = buffer.subarray(3).toString("utf8");
+  } else if (buffer.length >= 2 && buffer[0] === 0xff && buffer[1] === 0xfe) {
+    decoded = buffer.subarray(2).toString("utf16le");
+  } else if (buffer.length >= 2 && buffer[0] === 0xfe && buffer[1] === 0xff) {
+    decoded = swapUtf16Bytes(buffer.subarray(2)).toString("utf16le");
+  } else if (looksLikeUtf16(buffer, 1)) {
+    decoded = buffer.toString("utf16le");
+  } else if (looksLikeUtf16(buffer, 0)) {
+    decoded = swapUtf16Bytes(buffer).toString("utf16le");
+  } else {
+    decoded = buffer.toString("utf8");
+  }
+  return decoded.replace(/^\uFEFF/, "");
+}
+
+function probeEncodingMetadata(buffer) {
+  let evenNulls = 0;
+  let oddNulls = 0;
+  for (let index = 0; index < Math.min(buffer.length, 512); index += 1) {
+    if (buffer[index] !== 0) continue;
+    if (index % 2 === 0) evenNulls += 1;
+    else oddNulls += 1;
+  }
+  return `bytes=${buffer.length},utf8Bom=${buffer.subarray(0, 3).equals(Buffer.from([0xef, 0xbb, 0xbf]))},utf16leBom=${buffer.subarray(0, 2).equals(Buffer.from([0xff, 0xfe]))},utf16beBom=${buffer.subarray(0, 2).equals(Buffer.from([0xfe, 0xff]))},evenNulls=${evenNulls},oddNulls=${oddNulls}`;
 }
 
 function parseWorkspace(args) {
@@ -50,12 +103,16 @@ export async function runCli(argv = process.argv.slice(2)) {
     return 0;
   }
   if (command === "hook") {
-    const raw = await readStdin();
+    const inputBuffer = await readStdinBuffer();
+    const raw = decodeStdinBuffer(inputBuffer);
     let payload = {};
     if (raw.trim()) {
       try {
         payload = JSON.parse(raw);
       } catch {
+        if (process.env.DEEPWORK_INSTALL_PROBE === "1") {
+          process.stderr.write(`Deepwork hook probe encoding: ${probeEncodingMetadata(inputBuffer)}\n`);
+        }
         process.stderr.write("Deepwork hook blocked: stdin is not valid JSON.\n");
         return 2;
       }
