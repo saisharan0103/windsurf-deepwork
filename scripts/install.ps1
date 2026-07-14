@@ -187,17 +187,18 @@ function Test-ContainsCanonicalEntry {
 function Get-HookPowerShellCommand {
     param([string]$Launcher)
     $escaped = (Get-DeepworkFullPath $Launcher).Replace("'", "''")
-    return "`$OutputEncoding = New-Object System.Text.UTF8Encoding(`$false); [Console]::OutputEncoding = `$OutputEncoding; [Console]::In.ReadToEnd() | & '$escaped'; exit `$LASTEXITCODE"
+    # Do not route stdin through the PowerShell object pipeline. Native child
+    # processes inherit the hook's standard handles, preserving Windsurf's JSON
+    # bytes exactly across Windows PowerShell 5.1 and current PowerShell hosts.
+    return "& '$escaped'; exit `$LASTEXITCODE"
 }
 
 function Invoke-HookPowerShellProcess {
     param([string]$PowerShellCommand, [string]$InputText)
 
-    # PowerShell 7's native pipeline encoding varies by host and runner image;
-    # piping a string into Windows PowerShell can therefore add bytes that make
-    # otherwise valid JSON fail parsing. A redirected .NET process gives the
-    # exact hook command deterministic, BOM-free UTF-8 stdin on both Windows
-    # PowerShell 5.1 and modern pwsh hosts.
+    # Exercise the exact PowerShell hook command with deterministic, BOM-free
+    # UTF-8 stdin. The command itself lets the native launcher inherit this
+    # standard-input handle instead of converting bytes through an object pipe.
     $startInfo = New-Object System.Diagnostics.ProcessStartInfo
     $startInfo.FileName = (Get-Command powershell.exe -ErrorAction Stop).Source
     $escapedCommand = $PowerShellCommand.Replace('"', '\"')
