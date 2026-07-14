@@ -19,16 +19,27 @@ function samePath(left, right) {
   return a === b;
 }
 
-function runtimeRoots() {
+async function runtimeRoots() {
   const candidates = [
     process.env.DEEPWORK_RUNTIME_ROOT,
     path.join(os.homedir(), ".codeium", "windsurf", "deepwork-runtime")
   ].filter(Boolean);
-  return candidates.map((candidate) => path.resolve(candidate));
+  const roots = [];
+  for (const candidate of candidates) {
+    try {
+      roots.push(await canonicalWorkspaceRoot(candidate, process.cwd()));
+    } catch {
+      // A missing optional runtime path cannot contain the chosen workspace,
+      // but retaining its resolved spelling keeps this protective check
+      // conservative if it appears between discovery and comparison.
+      roots.push(path.resolve(candidate));
+    }
+  }
+  return roots;
 }
 
-function isInsideRuntime(root) {
-  return runtimeRoots().some((runtimeRoot) => {
+async function isInsideRuntime(root) {
+  return (await runtimeRoots()).some((runtimeRoot) => {
     const relative = path.relative(runtimeRoot, root);
     return relative === "" || (!relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative));
   });
@@ -101,7 +112,7 @@ export class DeepworkEngine {
     invariant(typeof workspaceRoot === "string" && workspaceRoot.trim(), "INVALID_WORKSPACE", "task_begin requires an explicit workspaceRoot");
     invariant(typeof taskId === "string" && /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(taskId), "INVALID_TASK_ID", "task_begin requires an explicit safe taskId");
     const root = await this.resolveChosenRoot(workspaceRoot);
-    invariant(!isInsideRuntime(root), "INVALID_WORKSPACE", "The installed deepwork runtime cannot be used as the user workspace");
+    invariant(!(await isInsideRuntime(root)), "INVALID_WORKSPACE", "The installed deepwork runtime cannot be used as the user workspace");
     const store = new WorkspaceStateStore(root);
     invariant(!(await store.taskExists(taskId)), "TASK_EXISTS", `Task already exists: ${taskId}`);
     const cleanObjective = String(objective || "").trim();

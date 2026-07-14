@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs/promises";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createDeepworkServer, TOOL_NAMES } from "../src/server.js";
@@ -34,7 +35,7 @@ test("doctor reports required runtime, dependencies, and workspace", async (t) =
   const root = await temporaryWorkspace(t);
   const report = await runDoctor({ workspaceRoot: root });
   assert.equal(report.ok, true);
-  assert.equal(report.workspaceRoot, root);
+  assert.equal(report.workspaceRoot, await fs.realpath(root));
   assert.equal(report.checks.find((check) => check.name === "node").ok, true);
   assert.equal(report.checks.find((check) => check.name === "@modelcontextprotocol/sdk").ok, true);
   assert.equal(report.checks.find((check) => check.name === "zod").ok, true);

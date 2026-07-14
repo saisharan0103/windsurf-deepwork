@@ -7,10 +7,11 @@ import { fileURLToPath } from "node:url";
 import { handleHook } from "../src/hooks.js";
 import { DeepworkEngine } from "../src/core.js";
 import { WorkspaceStateStore } from "../src/state/store.js";
+import { canonicalWorkspaceRoot } from "../src/security/path-guard.js";
 import { temporaryWorkspace } from "./helpers.js";
 
 async function bindTrajectory(root, trajectoryId, taskId) {
-  const store = new WorkspaceStateStore(root);
+  const store = new WorkspaceStateStore(await canonicalWorkspaceRoot(root));
   await store.appendHookEvent(trajectoryId, "MCP_TASK_BOUND", { taskId });
 }
 
@@ -342,7 +343,7 @@ test("every successful repeated write is recorded", async (t) => {
     const result = await handleHook({ phase: "post_write", cwd: root, payload: { cwd: root, trajectoryId: "repeat-owner", path: "target.js", success: true } });
     assert.equal(result.data.recorded, true);
   }
-  const events = await new WorkspaceStateStore(root).readTaskEvents("repeat-write");
+  const events = await new WorkspaceStateStore(await canonicalWorkspaceRoot(root)).readTaskEvents("repeat-write");
   assert.equal(events.filter((event) => event.type === "HOOK_WRITE").length, 2);
 });
 

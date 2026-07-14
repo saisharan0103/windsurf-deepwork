@@ -6,6 +6,7 @@ import { DeepworkEngine } from "../src/core.js";
 import { handleHook } from "../src/hooks.js";
 import { initializeGitRepository, temporaryWorkspace } from "./helpers.js";
 import { WorkspaceStateStore } from "../src/state/store.js";
+import { canonicalWorkspaceRoot } from "../src/security/path-guard.js";
 
 async function plannedTask(t, taskId = "task-1") {
   const root = await temporaryWorkspace(t);
@@ -58,7 +59,7 @@ test("a tracked write invalidates earlier verification until verification runs a
   await engine.runVerification({ taskId, noTestsEvidence: "This fixture contains only metadata and has no executable behavior." });
   assert.equal((await engine.finalGate({ taskId, acceptanceEvidence, diffSummary: "Updated fixture metadata and documented the behavior." })).decision, "REFUSE");
 
-  await new WorkspaceStateStore(root).appendHookEvent("trajectory-1", "MCP_TASK_BOUND", { taskId });
+  await new WorkspaceStateStore(await canonicalWorkspaceRoot(root)).appendHookEvent("trajectory-1", "MCP_TASK_BOUND", { taskId });
   const read = await handleHook({
     phase: "post_read_code",
     cwd: root,
@@ -100,6 +101,6 @@ test("task root remains usable when the MCP server cwd differs from the chosen w
   });
   await engine.inspectRepository({ taskId: "external-root" });
   const status = await engine.taskStatus({ taskId: "external-root" });
-  assert.equal(status.state.workspaceRoot, chosen);
+  assert.equal(status.state.workspaceRoot, await fs.realpath(chosen));
   assert.equal(status.state.stage, "inspected");
 });
