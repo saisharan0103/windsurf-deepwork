@@ -8,6 +8,23 @@ function comparable(value) {
   return process.platform === "win32" ? normalized.toLowerCase() : normalized;
 }
 
+function hasWindowsShortNameComponent(value) {
+  return path.normalize(value).split(/[\\/]/).some((segment) => /~\d+(?:\.[^\\/]*)?$/i.test(segment));
+}
+
+function sameFilesystemIdentity(left, right) {
+  return left.dev === right.dev && left.ino !== 0 && left.ino === right.ino;
+}
+
+async function assertCanonicalSpellingOrProvenShortAlias(requested, real, requestedStat, code = "PATH_REPARSE_POINT") {
+  if (comparable(real) === comparable(requested)) return;
+  const canonicalStat = await fs.lstat(real);
+  const isProvenShortNameAlias = process.platform === "win32"
+    && hasWindowsShortNameComponent(requested)
+    && sameFilesystemIdentity(requestedStat, canonicalStat);
+  invariant(isProvenShortNameAlias, code, `Refusing path redirected through a symlink, junction, or reparse point: ${requested}`);
+}
+
 export function isWithin(root, candidate) {
   const relative = path.relative(root, candidate);
   return relative === "" || (!relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative));
@@ -41,6 +58,27 @@ async function assertPathChainHasNoLinks(absolutePath) {
   return stat;
 }
 
+async function canonicalizeExistingPrefix(absolutePath) {
+  let existing = absolutePath;
+  const missingSegments = [];
+  while (true) {
+    try {
+      await fs.lstat(existing);
+      break;
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error;
+      const parent = path.dirname(existing);
+      invariant(parent !== existing, "PATH_NOT_FOUND", `No existing ancestor for path: ${absolutePath}`);
+      missingSegments.unshift(path.basename(existing));
+      existing = parent;
+    }
+  }
+  const existingStat = await assertPathChainHasNoLinks(existing);
+  const canonicalExisting = await fs.realpath(existing);
+  await assertCanonicalSpellingOrProvenShortAlias(existing, canonicalExisting, existingStat);
+  return path.resolve(canonicalExisting, ...missingSegments);
+}
+
 export async function canonicalWorkspaceRoot(input = process.env.DEEPWORK_WORKSPACE || process.cwd(), base = process.cwd()) {
   invariant(typeof input === "string" && input.trim(), "INVALID_WORKSPACE", "workspaceRoot must be a non-empty path");
   const absolute = path.resolve(base, input);
@@ -50,8 +88,9 @@ export async function canonicalWorkspaceRoot(input = process.env.DEEPWORK_WORKSP
     // Inspect every path component for links first, then adopt the filesystem's
     // canonical spelling instead of mistaking that alias expansion for a
     // junction redirect.
-    await assertPathChainHasNoLinks(absolute);
+    const stat = await assertPathChainHasNoLinks(absolute);
     const real = await fs.realpath(absolute);
+    await assertCanonicalSpellingOrProvenShortAlias(absolute, real, stat);
     const canonical = path.resolve(real);
     const canonicalStat = await fs.lstat(canonical);
     invariant(canonicalStat.isDirectory(), "INVALID_WORKSPACE", `Workspace root is not a directory: ${absolute}`);
@@ -68,14 +107,14 @@ export async function guardWorkspacePath(rootInput, target, options = {}) {
   const root = await canonicalWorkspaceRoot(requestedRoot);
   invariant(typeof target === "string" && target.trim(), "INVALID_PATH", "A non-empty target path is required");
   const requestedAbsolute = path.isAbsolute(target) ? path.resolve(target) : path.resolve(requestedRoot, target);
-  let relative;
-  if (isWithin(requestedRoot, requestedAbsolute)) relative = path.relative(requestedRoot, requestedAbsolute);
-  else if (isWithin(root, requestedAbsolute)) relative = path.relative(root, requestedAbsolute);
-  else invariant(false, "PATH_ESCAPE", `Path escapes the workspace: ${target}`);
-  const absolute = path.resolve(root, relative);
+  // Canonicalize the closest existing ancestor before containment checks. This
+  // maps legitimate Windows 8.3 spellings (including a missing write target
+  // below one) into the canonical workspace while the path-chain inspection
+  // still rejects symlinks and junctions before realpath can follow them.
+  const absolute = await canonicalizeExistingPrefix(requestedAbsolute);
   invariant(isWithin(root, absolute), "PATH_ESCAPE", `Path escapes the workspace: ${target}`);
 
-  relative = path.relative(root, absolute) || ".";
+  const relative = path.relative(root, absolute) || ".";
   if (!allowProtected) {
     const reason = protectedPathReason(relative);
     invariant(!reason, "PROTECTED_PATH", `Refusing protected path ${relative}: ${reason}`);

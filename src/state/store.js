@@ -39,6 +39,14 @@ function comparable(value) {
   return process.platform === "win32" ? normalized.toLowerCase() : normalized;
 }
 
+function hasWindowsShortNameComponent(value) {
+  return path.normalize(value).split(/[\\/]/).some((segment) => /~\d+(?:\.[^\\/]*)?$/i.test(segment));
+}
+
+function sameFilesystemIdentity(left, right) {
+  return left.dev === right.dev && left.ino !== 0 && left.ino === right.ino;
+}
+
 async function assertSafeStatePath(target, expectedRoot) {
   const absolute = path.resolve(target);
   const root = path.resolve(expectedRoot);
@@ -53,7 +61,18 @@ async function assertSafeStatePath(target, expectedRoot) {
       invariant(!stat.isSymbolicLink(), "STATE_REPARSE_POINT", `Refusing linked state path: ${cursor}`);
       invariant(!(stat.isFile() && stat.nlink > 1), "STATE_HARDLINK", `Refusing multiply-linked state file: ${cursor}`);
       const real = await fs.realpath(cursor);
-      invariant(comparable(real) === comparable(cursor), "STATE_REPARSE_POINT", `Refusing redirected state path: ${cursor}`);
+      if (comparable(real) !== comparable(cursor)) {
+        // Windows can expose a legitimate DOS 8.3 alias such as RUNNER~1 in
+        // TEMP while realpath returns the long directory name. The lstat
+        // above rejects symlinks and junctions first; matching nonzero file
+        // identities then proves this is only an alternate spelling of the
+        // same object. Any other realpath redirect remains fail-closed.
+        const canonicalStat = await fs.lstat(real);
+        const isProvenShortNameAlias = process.platform === "win32"
+          && hasWindowsShortNameComponent(cursor)
+          && sameFilesystemIdentity(stat, canonicalStat);
+        invariant(isProvenShortNameAlias, "STATE_REPARSE_POINT", `Refusing redirected state path: ${cursor}`);
+      }
     } catch (error) {
       if (error?.code === "ENOENT") break;
       throw error;

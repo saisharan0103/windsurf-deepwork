@@ -2,8 +2,24 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { canonicalWorkspaceRoot, guardWorkspacePath } from "../src/security/path-guard.js";
 import { temporaryWorkspace } from "./helpers.js";
+
+function comparable(value) {
+  const normalized = path.normalize(value).replace(/[\\/]+$/, "");
+  return process.platform === "win32" ? normalized.toLowerCase() : normalized;
+}
+
+function windowsShortPath(value) {
+  const command = `for %I in ("${value}") do @echo %~sI`;
+  const result = spawnSync(process.env.ComSpec || "cmd.exe", ["/d", "/c", command], {
+    encoding: "utf8",
+    windowsHide: true,
+    windowsVerbatimArguments: true
+  });
+  return result.status === 0 ? result.stdout.trim() : "";
+}
 
 test("canonical path guard allows normal in-workspace targets", async (t) => {
   const root = await temporaryWorkspace(t);
@@ -29,6 +45,20 @@ test("canonical workspace rejects a linked ancestor before realpath canonicaliza
     throw error;
   }
   await assert.rejects(() => canonicalWorkspaceRoot(linkedRoot), { code: "PATH_REPARSE_POINT" });
+});
+
+test("path guard maps a Windows short-name absolute target into its canonical workspace", async (t) => {
+  if (process.platform !== "win32") return t.skip("Windows 8.3 aliases are Windows-specific");
+  const root = await temporaryWorkspace(t, "deepwork-long-alias-workspace-");
+  await fs.mkdir(path.join(root, "src"));
+  await fs.writeFile(path.join(root, "src", "future.js"), "export {};\n");
+  const shortRoot = windowsShortPath(root);
+  if (!shortRoot || comparable(shortRoot) === comparable(root)) return t.skip("8.3 aliases are unavailable on this volume");
+
+  const canonicalRoot = await canonicalWorkspaceRoot(root);
+  const guarded = await guardWorkspacePath(canonicalRoot, path.join(shortRoot, "src", "future.js"), { mustExist: true });
+  assert.equal(guarded.root, canonicalRoot);
+  assert.equal(guarded.relative, path.join("src", "future.js"));
 });
 
 test("canonical path guard rejects escapes and protected paths", async (t) => {
