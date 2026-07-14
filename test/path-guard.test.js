@@ -9,9 +9,26 @@ test("canonical path guard allows normal in-workspace targets", async (t) => {
   const root = await temporaryWorkspace(t);
   await fs.mkdir(path.join(root, "src"));
   await fs.writeFile(path.join(root, "src", "index.js"), "export {};\n");
-  assert.equal(await canonicalWorkspaceRoot(root), root);
+  assert.equal(await canonicalWorkspaceRoot(root), await fs.realpath(root));
   const guarded = await guardWorkspacePath(root, "src/index.js", { mustExist: true });
   assert.equal(guarded.relative, path.join("src", "index.js"));
+});
+
+test("canonical workspace rejects a linked ancestor before realpath canonicalization", async (t) => {
+  const container = await temporaryWorkspace(t, "deepwork-chain-");
+  const realRoot = path.join(container, "real");
+  const linkedRoot = path.join(container, "linked");
+  await fs.mkdir(realRoot);
+  try {
+    await fs.symlink(realRoot, linkedRoot, process.platform === "win32" ? "junction" : "dir");
+  } catch (error) {
+    if (["EPERM", "EACCES", "UNKNOWN"].includes(error?.code)) {
+      t.skip(`platform cannot create a test symlink/junction: ${error.code}`);
+      return;
+    }
+    throw error;
+  }
+  await assert.rejects(() => canonicalWorkspaceRoot(linkedRoot), { code: "PATH_REPARSE_POINT" });
 });
 
 test("canonical path guard rejects escapes and protected paths", async (t) => {

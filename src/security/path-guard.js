@@ -26,28 +26,56 @@ async function assertNotLinkOrRedirect(absolutePath) {
   return stat;
 }
 
+async function assertPathChainHasNoLinks(absolutePath) {
+  const parsed = path.parse(absolutePath);
+  const segments = path.relative(parsed.root, absolutePath).split(path.sep).filter(Boolean);
+  let cursor = parsed.root;
+  let stat = await fs.lstat(cursor);
+  invariant(!stat.isSymbolicLink(), "PATH_REPARSE_POINT", `Refusing symlink or junction path: ${cursor}`);
+  for (const segment of segments) {
+    cursor = path.join(cursor, segment);
+    stat = await fs.lstat(cursor);
+    invariant(!stat.isSymbolicLink(), "PATH_REPARSE_POINT", `Refusing symlink or junction path: ${cursor}`);
+    invariant(!(stat.isFile() && stat.nlink > 1), "PATH_HARDLINK", `Refusing multiply-linked file: ${cursor}`);
+  }
+  return stat;
+}
+
 export async function canonicalWorkspaceRoot(input = process.env.DEEPWORK_WORKSPACE || process.cwd(), base = process.cwd()) {
   invariant(typeof input === "string" && input.trim(), "INVALID_WORKSPACE", "workspaceRoot must be a non-empty path");
   const absolute = path.resolve(base, input);
-  let stat;
   try {
-    stat = await assertNotLinkOrRedirect(absolute);
+    // Windows runners and enterprise profiles may expose a legitimate 8.3
+    // alias (for example RUNNER~1) whose realpath is the long directory name.
+    // Inspect every path component for links first, then adopt the filesystem's
+    // canonical spelling instead of mistaking that alias expansion for a
+    // junction redirect.
+    await assertPathChainHasNoLinks(absolute);
+    const real = await fs.realpath(absolute);
+    const canonical = path.resolve(real);
+    const canonicalStat = await fs.lstat(canonical);
+    invariant(canonicalStat.isDirectory(), "INVALID_WORKSPACE", `Workspace root is not a directory: ${absolute}`);
+    return canonical;
   } catch (error) {
     if (error instanceof DeepworkError) throw error;
     throw new DeepworkError("INVALID_WORKSPACE", `Workspace does not exist or cannot be resolved: ${absolute}`);
   }
-  invariant(stat.isDirectory(), "INVALID_WORKSPACE", `Workspace root is not a directory: ${absolute}`);
-  return absolute;
 }
 
 export async function guardWorkspacePath(rootInput, target, options = {}) {
   const { allowProtected = false, mustExist = false } = options;
-  const root = await canonicalWorkspaceRoot(rootInput);
+  const requestedRoot = path.resolve(rootInput);
+  const root = await canonicalWorkspaceRoot(requestedRoot);
   invariant(typeof target === "string" && target.trim(), "INVALID_PATH", "A non-empty target path is required");
-  const absolute = path.isAbsolute(target) ? path.resolve(target) : path.resolve(root, target);
+  const requestedAbsolute = path.isAbsolute(target) ? path.resolve(target) : path.resolve(requestedRoot, target);
+  let relative;
+  if (isWithin(requestedRoot, requestedAbsolute)) relative = path.relative(requestedRoot, requestedAbsolute);
+  else if (isWithin(root, requestedAbsolute)) relative = path.relative(root, requestedAbsolute);
+  else invariant(false, "PATH_ESCAPE", `Path escapes the workspace: ${target}`);
+  const absolute = path.resolve(root, relative);
   invariant(isWithin(root, absolute), "PATH_ESCAPE", `Path escapes the workspace: ${target}`);
 
-  const relative = path.relative(root, absolute) || ".";
+  relative = path.relative(root, absolute) || ".";
   if (!allowProtected) {
     const reason = protectedPathReason(relative);
     invariant(!reason, "PROTECTED_PATH", `Refusing protected path ${relative}: ${reason}`);
