@@ -190,19 +190,50 @@ function Get-HookPowerShellCommand {
     return "& '$escaped'; exit `$LASTEXITCODE"
 }
 
+function Invoke-HookPowerShellProcess {
+    param([string]$PowerShellCommand, [string]$InputText)
+
+    # PowerShell 7's native pipeline encoding varies by host and runner image;
+    # piping a string into Windows PowerShell can therefore add bytes that make
+    # otherwise valid JSON fail parsing. A redirected .NET process gives the
+    # exact hook command deterministic, BOM-free UTF-8 stdin on both Windows
+    # PowerShell 5.1 and modern pwsh hosts.
+    $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $startInfo.FileName = (Get-Command powershell.exe -ErrorAction Stop).Source
+    $escapedCommand = $PowerShellCommand.Replace('"', '\"')
+    $startInfo.Arguments = '-NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "' + $escapedCommand + '"'
+    $startInfo.UseShellExecute = $false
+    $startInfo.CreateNoWindow = $true
+    $startInfo.RedirectStandardInput = $true
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.RedirectStandardError = $true
+    if ($startInfo.PSObject.Properties.Name -contains 'StandardInputEncoding') {
+        $startInfo.StandardInputEncoding = New-Object System.Text.UTF8Encoding($false)
+    }
+
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $startInfo
+    if (-not $process.Start()) { throw 'Failed to start the Windows hook PowerShell probe.' }
+    $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+    $stderrTask = $process.StandardError.ReadToEndAsync()
+    $process.StandardInput.Write($InputText)
+    $process.StandardInput.Close()
+    $process.WaitForExit()
+    $stdout = $stdoutTask.GetAwaiter().GetResult()
+    $stderr = $stderrTask.GetAwaiter().GetResult()
+    return [pscustomobject]@{
+        ExitCode = $process.ExitCode
+        Output = (@($stdout, $stderr) | Where-Object { $_ }) -join "`n"
+    }
+}
+
 function Invoke-HookPowerShellProbe {
     param([string]$PowerShellCommand, [string]$Workspace)
     Assert-DeepworkNoReparseAncestors $Workspace
 
-    $priorPreference = $ErrorActionPreference
-    $ErrorActionPreference = 'Continue'
-    try {
-        $allowedOutput = '{}' | & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command $PowerShellCommand 2>&1
-        $allowedExit = $LASTEXITCODE
-    }
-    finally { $ErrorActionPreference = $priorPreference }
-    if ($allowedExit -ne 0 -or ($allowedOutput -join "`n") -notmatch '"allowed"\s*:\s*true') {
-        throw "Installed Windows hook command failed its allowed PowerShell probe (exit $allowedExit): $($allowedOutput -join ' ')"
+    $allowedProbe = Invoke-HookPowerShellProcess -PowerShellCommand $PowerShellCommand -InputText '{}'
+    if ($allowedProbe.ExitCode -ne 0 -or $allowedProbe.Output -notmatch '"allowed"\s*:\s*true') {
+        throw "Installed Windows hook command failed its allowed PowerShell probe (exit $($allowedProbe.ExitCode)): $($allowedProbe.Output)"
     }
 
     $blockedPayload = [ordered]@{
@@ -213,15 +244,9 @@ function Invoke-HookPowerShellProbe {
         execution_id = 'installer-block-probe'
         tool_info = [ordered]@{ command_line = 'curl https://example.invalid/prompt-injection' }
     } | ConvertTo-Json -Compress -Depth 10
-    $priorPreference = $ErrorActionPreference
-    $ErrorActionPreference = 'Continue'
-    try {
-        $blockedOutput = $blockedPayload | & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command $PowerShellCommand 2>&1
-        $blockedExit = $LASTEXITCODE
-    }
-    finally { $ErrorActionPreference = $priorPreference }
-    if ($blockedExit -ne 2 -or ($blockedOutput -join "`n") -notmatch 'Deepwork hook blocked') {
-        throw "Installed Windows hook command did not propagate the expected blocking exit 2 (exit $blockedExit): $($blockedOutput -join ' ')"
+    $blockedProbe = Invoke-HookPowerShellProcess -PowerShellCommand $PowerShellCommand -InputText $blockedPayload
+    if ($blockedProbe.ExitCode -ne 2 -or $blockedProbe.Output -notmatch 'Deepwork hook blocked') {
+        throw "Installed Windows hook command did not propagate the expected blocking exit 2 (exit $($blockedProbe.ExitCode)): $($blockedProbe.Output)"
     }
 }
 
