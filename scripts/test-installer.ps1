@@ -80,7 +80,7 @@ try {
         $managedCount = @($hooks.hooks.$event | Where-Object { $_.command -like '*deepwork-hook.cmd*' }).Count
         Assert-Test ($managedCount -eq 1) "idempotent install produced $managedCount managed entries for $event"
         $managedEntry = @($hooks.hooks.$event | Where-Object { $_.command -like '*deepwork-hook.cmd*' })[0]
-        Assert-Test ([string]$managedEntry.powershell -match '^& ''.*deepwork-hook\.cmd''; exit \$LASTEXITCODE$') "Windows PowerShell hook invocation is missing or unsafe for $event"
+        Assert-Test ([string]$managedEntry.powershell -match '^\[Console\]::In\.ReadToEnd\(\) \| & ''.*deepwork-hook\.cmd''; exit \$LASTEXITCODE$') "Windows PowerShell hook invocation is missing or unsafe for $event"
     }
     Assert-Test (@($hooks.hooks.pre_read_code | Where-Object { $_.command -eq 'user-hook' }).Count -eq 1) 'unrelated predecessor hook was lost'
     $mcp = Get-Content -Raw -LiteralPath (Join-Path $windsurf 'mcp_config.json') | ConvertFrom-Json
