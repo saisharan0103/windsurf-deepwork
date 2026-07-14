@@ -187,7 +187,7 @@ function Test-ContainsCanonicalEntry {
 function Get-HookPowerShellCommand {
     param([string]$Launcher)
     $escaped = (Get-DeepworkFullPath $Launcher).Replace("'", "''")
-    return "[Console]::In.ReadToEnd() | & '$escaped'; exit `$LASTEXITCODE"
+    return "`$OutputEncoding = New-Object System.Text.UTF8Encoding(`$false); [Console]::OutputEncoding = `$OutputEncoding; [Console]::In.ReadToEnd() | & '$escaped'; exit `$LASTEXITCODE"
 }
 
 function Invoke-HookPowerShellProcess {
