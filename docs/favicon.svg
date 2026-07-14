@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Deepwork gate</title>
+  <rect width="64" height="64" rx="16" fill="#07110e"/>
+  <path d="M17 17h30v30H17z" fill="none" stroke="#245f4a" stroke-width="3"/>
+  <path d="M23 32.5l6 6L42 25" fill="none" stroke="#50e3a4" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="17" cy="17" r="3" fill="#a5f3d2"/>
+  <circle cx="47" cy="17" r="3" fill="#a5f3d2"/>
+  <circle cx="17" cy="47" r="3" fill="#a5f3d2"/>
+  <circle cx="47" cy="47" r="3" fill="#a5f3d2"/>
+</svg>

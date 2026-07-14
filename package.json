@@ -1,0 +1,28 @@
+{
+  "name": "deepwork-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A quality-gated MCP server and Windsurf hook guard for deliberate repository work.",
+  "type": "module",
+  "bin": {
+    "deepwork": "./src/cli.js"
+  },
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "start": "node src/cli.js server",
+    "doctor": "node src/cli.js doctor",
+    "docs:check": "node scripts/check-docs.mjs",
+    "check": "npm test && npm run docs:check && npm run doctor",
+    "test": "node --test",
+    "test:coverage": "node --test --experimental-test-coverage"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "zod": "4.4.3"
+  }
+}

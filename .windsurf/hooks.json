@@ -1,0 +1,66 @@
+{
+  "hooks": {
+    "pre_read_code": [
+      {
+        "command": "node src/cli.js hook",
+        "show_output": true,
+        "working_directory": "."
+      }
+    ],
+    "post_read_code": [
+      {
+        "command": "node src/cli.js hook",
+        "show_output": false,
+        "working_directory": "."
+      }
+    ],
+    "pre_write_code": [
+      {
+        "command": "node src/cli.js hook",
+        "show_output": true,
+        "working_directory": "."
+      }
+    ],
+    "post_write_code": [
+      {
+        "command": "node src/cli.js hook",
+        "show_output": false,
+        "working_directory": "."
+      }
+    ],
+    "pre_run_command": [
+      {
+        "command": "node src/cli.js hook",
+        "show_output": true,
+        "working_directory": "."
+      }
+    ],
+    "post_run_command": [
+      {
+        "command": "node src/cli.js hook",
+        "show_output": false,
+        "working_directory": "."
+      }
+    ],
+    "pre_mcp_tool_use": [
+      {
+        "command": "node src/cli.js hook",
+        "show_output": true,
+        "working_directory": "."
+      }
+    ],
+    "post_mcp_tool_use": [
+      {
+        "command": "node src/cli.js hook",
+        "show_output": false,
+        "working_directory": "."
+      }
+    ],
+    "post_cascade_response_with_transcript": [
+      {
+        "command": "node src/cli.js hook",
+        "working_directory": "."
+      }
+    ]
+  }
+}

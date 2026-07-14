@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07110e">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Deepwork is an evidence-gated MCP, hook, skill, and workflow layer for deliberate coding in Windsurf Cascade.">
+  <meta property="og:title" content="Deepwork for Windsurf">
+  <meta property="og:description" content="Make Cascade prove the work: inspect, plan, verify, review, and pass the final gate.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://saisharan0103.github.io/windsurf-deepwork/">
+  <link rel="canonical" href="https://saisharan0103.github.io/windsurf-deepwork/">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <title>Deepwork for Windsurf — Evidence before “done”</title>
+</head>
+<body>
+  <svg class="icon-sprite" aria-hidden="true">
+    <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="icon-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></symbol>
+    <symbol id="icon-github" viewBox="0 0 24 24"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3.3-.4 6.8-1.6 6.8-7A5.4 5.4 0 0 0 19.4 4 5 5 0 0 0 19.3.5S18.2.1 15 2a13.4 13.4 0 0 0-7 0C4.8.1 3.7.5 3.7.5A5 5 0 0 0 3.6 4a5.4 5.4 0 0 0-1.4 3.7c0 5.3 3.5 6.5 6.8 7A4.8 4.8 0 0 0 8 18v4M8 19c-3 .9-3-1.5-4-2"/></symbol>
+    <symbol id="icon-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="icon-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="icon-terminal" viewBox="0 0 24 24"><path d="m4 17 6-5-6-5M12 19h8"/></symbol>
+    <symbol id="icon-layers" viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/></symbol>
+    <symbol id="icon-branch" viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><circle cx="18" cy="7" r="2"/><circle cx="6" cy="19" r="2"/><path d="M6 7v10M8 7h4a6 6 0 0 1 6 6v-4"/></symbol>
+    <symbol id="icon-message" viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"/><path d="M8 9h8M8 13h5"/></symbol>
+    <symbol id="icon-alert" viewBox="0 0 24 24"><path d="M10.3 3.6 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></symbol>
+    <symbol id="icon-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14Z"/><path d="M4 19.5V5.5M8 7h8M8 11h6"/></symbol>
+    <symbol id="icon-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
+    <symbol id="icon-external" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
+  </svg>
+
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div>
+
+  <header class="site-header" id="top">
+    <div class="nav-shell">
+      <a class="brand" href="#top" aria-label="Deepwork home">
+        <span class="brand-mark" aria-hidden="true"><svg><use href="#icon-check"/></svg></span>
+        <span>deepwork<span class="brand-cursor">_</span></span>
+      </a>
+      <button class="menu-button" id="menu-button" type="button" aria-label="Open navigation" aria-controls="primary-nav" aria-expanded="false">
+        <svg class="menu-open-icon" aria-hidden="true"><use href="#icon-menu"/></svg>
+        <svg class="menu-close-icon" aria-hidden="true"><use href="#icon-close"/></svg>
+      </button>
+      <nav class="primary-nav" id="primary-nav" aria-label="Primary navigation">
+        <a href="#why">Why</a>
+        <a href="#quick-start">Quick start</a>
+        <a href="#workflow">Workflow</a>
+        <a href="#tools">Tools</a>
+        <a href="#arena">Arena</a>
+        <a href="#whatsapp">WhatsApp</a>
+        <a href="#security">Security</a>
+      </nav>
+      <a class="nav-github" href="https://github.com/saisharan0103/windsurf-deepwork" target="_blank" rel="noopener noreferrer">
+        <svg aria-hidden="true"><use href="#icon-github"/></svg>
+        <span>GitHub</span>
+      </a>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="hero section-shell" aria-labelledby="hero-title">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="status-dot"></span> Local quality layer for Windsurf Cascade</div>
+          <h1 id="hero-title">Make Cascade<br><span>prove the work.</span></h1>
+          <p class="hero-lede">Deepwork replaces rushed “done” claims with a bounded engineering cycle: contract, inspect, plan, implement, verify, review, and pass an evidence-backed final gate.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#quick-start">Install on Windows <svg aria-hidden="true"><use href="#icon-arrow"/></svg></a>
+            <a class="button button-secondary" href="https://github.com/saisharan0103/windsurf-deepwork" target="_blank" rel="noopener noreferrer"><svg aria-hidden="true"><use href="#icon-github"/></svg> View source</a>
+          </div>
+          <ul class="hero-facts" aria-label="Project facts">
+            <li><svg aria-hidden="true"><use href="#icon-check"/></svg> Six focused MCP tools</li>
+            <li><svg aria-hidden="true"><use href="#icon-check"/></svg> 41+ automated cases</li>
+            <li><svg aria-hidden="true"><use href="#icon-check"/></svg> Native Arena playbook</li>
+          </ul>
+        </div>
+
+        <div class="hero-console" aria-label="Deepwork verification flow preview">
+          <div class="console-bar">
+            <div class="console-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+            <span>cascade / deep-build</span>
+            <span class="console-secure"><svg aria-hidden="true"><use href="#icon-shield"/></svg> gated</span>
+          </div>
+          <div class="console-body">
+            <p><span class="prompt">›</span> /deep-build @deep-build fix checkout race</p>
+            <ol class="console-steps">
+              <li class="is-done"><span>01</span><strong>task_begin</strong><em>contract recorded</em></li>
+              <li class="is-done"><span>02</span><strong>inspect_repository</strong><em>37 files mapped</em></li>
+              <li class="is-done"><span>03</span><strong>record_plan</strong><em>scope locked</em></li>
+              <li class="is-done"><span>04</span><strong>run_verification</strong><em>tests passed</em></li>
+              <li class="is-active"><span>05</span><strong>final_gate</strong><em>checking evidence</em></li>
+            </ol>
+            <div class="gate-result"><svg aria-hidden="true"><use href="#icon-check"/></svg><div><span>VERIFIED</span><small>Current fingerprint and Git scope match.</small></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-strip" aria-label="Key operating boundaries">
+        <span>Runs locally</span><i></i><span>Windows-first installer</span><i></i><span>Node 22+</span><i></i><span>Git-aware</span><i></i><span>Fail-closed hooks</span>
+      </div>
+    </section>
+
+    <section class="section-shell section-block" id="why" aria-labelledby="why-title">
+      <div class="section-heading split-heading">
+        <div><span class="section-index">01 / WHY</span><h2 id="why-title">Less persuasion.<br>More evidence.</h2></div>
+        <p>Cascade can still reason, edit, and use models normally. Deepwork changes what must be true before it is allowed to write broadly or call the result complete.</p>
+      </div>
+      <div class="problem-grid">
+        <article class="problem-card problem-before" data-search-card>
+          <span class="card-kicker">WITHOUT A GATE</span>
+          <h3>Fast answer, fragile result</h3>
+          <ul>
+            <li>Reads only the obvious file</li>
+            <li>Loses requirements during a long session</li>
+            <li>Edits outside the intended scope</li>
+            <li>Repeats the same failed command</li>
+            <li>Says “fixed” before tests run</li>
+          </ul>
+        </article>
+        <article class="problem-card problem-after" data-search-card>
+          <span class="card-kicker">WITH DEEPWORK</span>
+          <h3>Bounded work, inspectable proof</h3>
+          <ul>
+            <li>Task contract survives the session</li>
+            <li>Repository inventory precedes the plan</li>
+            <li>Allowed and protected paths are explicit</li>
+            <li>Retry circuits interrupt wasteful loops</li>
+            <li>Current tests and fingerprints decide status</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="feature-grid">
+        <article class="feature-card" data-search-card>
+          <div class="feature-icon"><svg aria-hidden="true"><use href="#icon-book"/></svg></div>
+          <span class="feature-number">01</span>
+          <h3>Persistent contract</h3>
+          <p>Objective, acceptance criteria, constraints, assumptions, non-goals, and protected paths are recorded before implementation.</p>
+        </article>
+        <article class="feature-card" data-search-card>
+          <div class="feature-icon"><svg aria-hidden="true"><use href="#icon-branch"/></svg></div>
+          <span class="feature-number">02</span>
+          <h3>Real Git scope</h3>
+          <p>The gate compares actual tracked and untracked changes against the baseline, plan, and task contract.</p>
+        </article>
+        <article class="feature-card" data-search-card>
+          <div class="feature-icon"><svg aria-hidden="true"><use href="#icon-shield"/></svg></div>
+          <span class="feature-number">03</span>
+          <h3>Path defenses</h3>
+          <p>Escaping links, junctions, reparse redirects, hardlinks, special files, and protected credential paths are rejected.</p>
+        </article>
+        <article class="feature-card" data-search-card>
+          <div class="feature-icon"><svg aria-hidden="true"><use href="#icon-terminal"/></svg></div>
+          <span class="feature-number">04</span>
+          <h3>Constrained verification</h3>
+          <p>Only exact planned checks run through the verifier, with source fingerprints captured before and after execution.</p>
+        </article>
+        <article class="feature-card" data-search-card>
+          <div class="feature-icon"><svg aria-hidden="true"><use href="#icon-layers"/></svg></div>
+          <span class="feature-number">05</span>
+          <h3>Trajectory isolation</h3>
+          <p>Task evidence binds to the Cascade trajectory that began it, preventing one session from borrowing another session’s proof.</p>
+        </article>
+        <article class="feature-card" data-search-card>
+          <div class="feature-icon"><svg aria-hidden="true"><use href="#icon-check"/></svg></div>
+          <span class="feature-number">06</span>
+          <h3>Honest status</h3>
+          <p>Every outcome is classified as Verified, Partially verified, or Blocked—never upgraded by confident prose.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section-band" id="quick-start" aria-labelledby="quick-start-title">
+      <div class="section-shell section-block">
+        <div class="section-heading split-heading">
+          <div><span class="section-index">02 / INSTALL</span><h2 id="quick-start-title">From GitHub to Cascade<br>in five deliberate steps.</h2></div>
+          <p>The runtime remains on your machine because it needs local repository access and must be launched by Windsurf as a `stdio` MCP.</p>
+        </div>
+
+        <div class="requirements" aria-label="Installation requirements">
+          <span><svg aria-hidden="true"><use href="#icon-check"/></svg> Windows PowerShell</span>
+          <span><svg aria-hidden="true"><use href="#icon-check"/></svg> Node.js 22+</span>
+          <span><svg aria-hidden="true"><use href="#icon-check"/></svg> npm</span>
+          <span><svg aria-hidden="true"><use href="#icon-check"/></svg> Git recommended</span>
+        </div>
+
+        <div class="install-layout">
+          <ol class="install-steps">
+            <li class="is-selected" data-step="1"><span>01</span><div><strong>Clone the public repository</strong><small>Get the reviewed source on the machine that runs Windsurf.</small></div></li>
+            <li data-step="2"><span>02</span><div><strong>Install exact dependencies</strong><small>`npm ci` respects the lockfile.</small></div></li>
+            <li data-step="3"><span>03</span><div><strong>Run the full checks</strong><small>Validate the package before global installation.</small></div></li>
+            <li data-step="4"><span>04</span><div><strong>Install into Windsurf</strong><small>The idempotent installer merges rules, hooks, skill, workflows, and MCP config.</small></div></li>
+            <li data-step="5"><span>05</span><div><strong>Reload and invoke</strong><small>Enterprise teams may need admin MCP enablement.</small></div></li>
+          </ol>
+
+          <div class="code-panel">
+            <div class="code-panel-head">
+              <span><svg aria-hidden="true"><use href="#icon-terminal"/></svg> PowerShell</span>
+              <button class="copy-button" type="button" data-copy-target="install-code" aria-label="Copy installation commands">
+                <svg aria-hidden="true"><use href="#icon-copy"/></svg><span>Copy</span>
+              </button>
+            </div>
+            <pre id="install-code"><code><span class="code-comment"># 1. Clone</span>
+git clone https://github.com/saisharan0103/windsurf-deepwork.git
+cd windsurf-deepwork
+
+<span class="code-comment"># 2–3. Reproduce and verify the release</span>
+npm ci
+npm run check
+powershell -NoProfile -File .\scripts\test-installer.ps1
+
+<span class="code-comment"># 4. Install globally for the current Windows user</span>
+powershell -NoProfile -ExecutionPolicy Bypass `
+  -File .\scripts\install.ps1
+
+<span class="code-comment"># 5. Reload Windsurf, then use in Cascade</span>
+/deep-build @deep-build &lt;your task&gt;</code></pre>
+            <div class="code-note"><svg aria-hidden="true"><use href="#icon-shield"/></svg><p><strong>Installer safety:</strong> it stages the runtime, proves the real Windows hook command, preserves predecessor config, records ownership, and rolls back on failure.</p></div>
+          </div>
+        </div>
+
+        <div class="post-install-grid">
+          <article data-search-card><span>INSTALLED RUNTIME</span><code>~\.codeium\windsurf\deepwork-runtime</code></article>
+          <article data-search-card><span>AUDIT STATE</span><code>~\.codeium\windsurf\deepwork-state</code></article>
+          <article data-search-card><span>MCP CONFIG</span><code>~\.codeium\windsurf\mcp_config.json</code></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-shell section-block" id="workflow" aria-labelledby="workflow-title">
+      <div class="section-heading split-heading">
+        <div><span class="section-index">03 / WORKFLOW</span><h2 id="workflow-title">A completion claim<br>has prerequisites.</h2></div>
+        <p>The always-on rule keeps the boundary short. The skill and workflows expand only when a non-trivial task needs the full procedure.</p>
+      </div>
+
+      <div class="pipeline" aria-label="Deepwork engineering pipeline">
+        <article data-search-card><span>01</span><h3>Contract</h3><p>Freeze the goal and acceptance criteria.</p></article>
+        <article data-search-card><span>02</span><h3>Inspect</h3><p>Map repository state and affected paths.</p></article>
+        <article data-search-card><span>03</span><h3>Plan</h3><p>Bind files and checks to each criterion.</p></article>
+        <article data-search-card><span>04</span><h3>Implement</h3><p>Edit one coherent unit at a time.</p></article>
+        <article data-search-card><span>05</span><h3>Verify</h3><p>Run exact planned commands and fingerprint.</p></article>
+        <article data-search-card><span>06</span><h3>Review</h3><p>Search independently for counterexamples.</p></article>
+        <article data-search-card><span>07</span><h3>Gate</h3><p>Prove evidence and current Git scope agree.</p></article>
+      </div>
+
+      <div class="status-grid">
+        <article class="status-card status-verified" data-search-card><span><svg aria-hidden="true"><use href="#icon-check"/></svg> VERIFIED</span><p>Inspection, plan, current fingerprints, every planned command, Git scope, and acceptance evidence pass.</p></article>
+        <article class="status-card status-partial" data-search-card><span><svg aria-hidden="true"><use href="#icon-alert"/></svg> PARTIALLY VERIFIED</span><p>Useful work exists, but a relevant check is manual, skipped, unavailable, or lacks the authoritative MCP gate.</p></article>
+        <article class="status-card status-blocked" data-search-card><span><svg aria-hidden="true"><use href="#icon-close"/></svg> BLOCKED</span><p>Evidence contradicts completion, a safety boundary was hit, or a required user/platform decision is unavailable.</p></article>
+      </div>
+
+      <div class="prompt-card">
+        <div>
+          <span class="card-kicker">RECOMMENDED STARTING PROMPT</span>
+          <h3>Give both the task and the standard.</h3>
+          <p>Use the same prompt in each Arena candidate so the comparison is meaningful.</p>
+        </div>
+        <div class="prompt-code-wrap">
+          <button class="copy-button copy-floating" type="button" data-copy-target="prompt-code" aria-label="Copy recommended Deepwork prompt"><svg aria-hidden="true"><use href="#icon-copy"/></svg><span>Copy</span></button>
+          <pre id="prompt-code"><code>/deep-build @deep-build
+
+Objective: &lt;what must change&gt;
+Acceptance criteria:
+- &lt;observable result one&gt;
+- &lt;observable result two&gt;
+Constraints:
+- preserve existing user changes
+- ask before deployments, secrets, or destructive actions
+Verification:
+- run the repository-native focused and regression checks
+- require deepwork.final_gate before claiming Verified</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-band tools-section" id="tools" aria-labelledby="tools-title">
+      <div class="section-shell section-block">
+        <div class="section-heading split-heading">
+          <div><span class="section-index">04 / MCP</span><h2 id="tools-title">Six tools.<br>One ordered state machine.</h2></div>
+          <p>A small tool surface makes discovery predictable and keeps the model focused on evidence instead of an oversized integration catalog.</p>
+        </div>
+
+        <div class="tools-list">
+          <article class="tool-row" data-search-card>
+            <span class="tool-index">01</span><code>deepwork.task_begin</code>
+            <p>Records the objective, acceptance criteria, non-goals, constraints, assumptions, allowed and protected paths, task ID, and canonical workspace.</p>
+            <span class="tool-tag">CONTRACT</span>
+          </article>
+          <article class="tool-row" data-search-card>
+            <span class="tool-index">02</span><code>deepwork.inspect_repository</code>
+            <p>Builds a bounded inventory from Git, manifests, ripgrep or a filesystem fallback, and a link/reparse scan.</p>
+            <span class="tool-tag">READ ONLY</span>
+          </article>
+          <article class="tool-row" data-search-card>
+            <span class="tool-index">03</span><code>deepwork.record_plan</code>
+            <p>Persists ordered steps, risks, exact intended files, and every verification command before implementation writes are allowed.</p>
+            <span class="tool-tag">SCOPE</span>
+          </article>
+          <article class="tool-row" data-search-card>
+            <span class="tool-index">04</span><code>deepwork.run_verification</code>
+            <p>Executes one exact planned check without a shell, in a minimal environment, and fails if relevant source changes during verification.</p>
+            <span class="tool-tag tool-tag-warn">EXECUTES CODE</span>
+          </article>
+          <article class="tool-row" data-search-card>
+            <span class="tool-index">05</span><code>deepwork.task_status</code>
+            <p>Returns the append-only task evidence and the current quality-gate stage for transparent recovery and handoff.</p>
+            <span class="tool-tag">EVIDENCE</span>
+          </article>
+          <article class="tool-row" data-search-card>
+            <span class="tool-index">06</span><code>deepwork.final_gate</code>
+            <p>Refuses PASS unless the plan, post-change checks, acceptance evidence, current fingerprints, diff summary, and actual Git scope agree.</p>
+            <span class="tool-tag tool-tag-pass">AUTHORITATIVE</span>
+          </article>
+        </div>
+
+        <div class="architecture-card">
+          <div class="architecture-copy">
+            <span class="card-kicker">LOCAL ARCHITECTURE</span>
+            <h3>Cloud models, local boundaries.</h3>
+            <p>Cascade remains the MCP client. Deepwork runs as a local Node process, while task evidence stays outside the project and Git remains the source-of-truth for changed scope.</p>
+          </div>
+          <div class="architecture-diagram" role="img" aria-label="Cascade connects through rules, skills, workflows, and hooks to the local Deepwork MCP, which checks Git and user-global state">
+            <div class="arch-node arch-primary"><small>WINDSURF</small><strong>Cascade + Arena</strong></div>
+            <span class="arch-line"></span>
+            <div class="arch-row">
+              <div class="arch-node"><small>BEHAVIOR</small><strong>Rule + skill + workflows</strong></div>
+              <div class="arch-node"><small>BOUNDARY</small><strong>Pre/post hooks</strong></div>
+            </div>
+            <span class="arch-line"></span>
+            <div class="arch-node arch-accent"><small>LOCAL STDIO</small><strong>Deepwork MCP · six tools</strong></div>
+            <span class="arch-line"></span>
+            <div class="arch-row">
+              <div class="arch-node"><small>EVIDENCE</small><strong>User-global locked state</strong></div>
+              <div class="arch-node"><small>SCOPE</small><strong>Git + SHA-256 fingerprints</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-shell section-block" id="arena" aria-labelledby="arena-title">
+      <div class="section-heading split-heading">
+        <div><span class="section-index">05 / MULTI-MODEL</span><h2 id="arena-title">Spend credits on<br>independent evidence.</h2></div>
+        <p>Deepwork cannot switch hosted models or launch Arena through MCP. Windsurf’s native Arena is the documented route for genuine multi-model candidates.</p>
+      </div>
+
+      <div class="arena-grid">
+        <div class="arena-steps">
+          <article data-search-card><span>01</span><div><h3>Prepare a Git baseline</h3><p>Initialize Git and commit or preserve the intended starting point. Untracked files are not copied into Arena worktrees by default.</p></div></article>
+          <article data-search-card><span>02</span><div><h3>Enter Arena manually</h3><p>Open the live model picker and select two strong, different models available to your account.</p></div></article>
+          <article data-search-card><span>03</span><div><h3>Send one identical contract</h3><p>Use the same `/deep-build @deep-build` task in both isolated candidates. Model multipliers are charged additively.</p></div></article>
+          <article data-search-card><span>04</span><div><h3>Compare artifacts, not confidence</h3><p>Score repository coverage, diff scope, regression tests, security risk, and final-gate evidence.</p></div></article>
+          <article data-search-card><span>05</span><div><h3>Run adversarial review</h3><p>Have the retained models review the winning diff without relying on its self-justification, then rerun affected checks.</p></div></article>
+        </div>
+
+        <aside class="arena-scorecard">
+          <span class="card-kicker">CANDIDATE SCORECARD</span>
+          <h3>What wins?</h3>
+          <div class="score-row"><span>Acceptance coverage</span><strong>30%</strong></div>
+          <div class="score-track"><i style="--score: 90%"></i></div>
+          <div class="score-row"><span>Verification depth</span><strong>25%</strong></div>
+          <div class="score-track"><i style="--score: 75%"></i></div>
+          <div class="score-row"><span>Scope discipline</span><strong>20%</strong></div>
+          <div class="score-track"><i style="--score: 60%"></i></div>
+          <div class="score-row"><span>Risk handling</span><strong>15%</strong></div>
+          <div class="score-track"><i style="--score: 45%"></i></div>
+          <div class="score-row"><span>Clarity of handoff</span><strong>10%</strong></div>
+          <div class="score-track"><i style="--score: 30%"></i></div>
+          <p class="score-note">Suggested rubric, not an automated benchmark. Change the weights for your repository and risk profile.</p>
+        </aside>
+      </div>
+
+      <div class="boundary-callout">
+        <svg aria-hidden="true"><use href="#icon-alert"/></svg>
+        <div><strong>Do not confuse prompting with routing.</strong><p>A skill can require a careful process; it cannot secretly force a model’s hidden reasoning budget, select a Windsurf-hosted model, or start another Cascade session.</p></div>
+      </div>
+    </section>
+
+    <section class="whatsapp-section" id="whatsapp" aria-labelledby="whatsapp-title">
+      <div class="section-shell section-block">
+        <div class="section-heading split-heading">
+          <div><span class="section-index">06 / WHATSAPP</span><h2 id="whatsapp-title">Message the workflow.<br>Never expose the shell.</h2></div>
+          <p>WhatsApp can become a notification or task-intake channel through a separate companion service. It cannot directly call a local Windsurf `stdio` MCP.</p>
+        </div>
+
+        <div class="truth-banner">
+          <div class="truth-icon"><svg aria-hidden="true"><use href="#icon-message"/></svg></div>
+          <div><span class="card-kicker">CURRENT RELEASE BOUNDARY</span><h3>This repository does not include a WhatsApp bot, hosted API, database, queue, or remote Windsurf controller.</h3><p>The diagrams below are a safe implementation blueprint. Deploying the current MCP to Heroku would not make Windsurf or native Arena remotely controllable.</p></div>
+        </div>
+
+        <div class="route-switcher" role="tablist" aria-label="WhatsApp integration routes">
+          <button id="route-notify-tab" role="tab" aria-selected="true" aria-controls="route-notify" tabindex="0" data-route-tab="notify"><span>Route A</span> Status notifications</button>
+          <button id="route-control-tab" role="tab" aria-selected="false" aria-controls="route-control" tabindex="-1" data-route-tab="control"><span>Route B</span> Authenticated job service</button>
+        </div>
+
+        <div class="route-panel is-active" id="route-notify" role="tabpanel" aria-labelledby="route-notify-tab" data-route-panel="notify">
+          <div class="route-copy"><span class="route-label">RECOMMENDED FIRST</span><h3>Keep Windsurf local. Send status outward.</h3><p>A local watcher reads redacted Deepwork task metadata and sends milestone notifications through Meta’s WhatsApp Cloud API. Incoming messages can stay limited to safe queries such as `status TASK-ID`.</p><ul><li>No remote code execution surface</li><li>No cloud copy of the repository</li><li>Simple opt-in sender allowlist</li><li>Useful completion and blocker alerts</li></ul></div>
+          <div class="flow-diagram flow-four" role="img" aria-label="Deepwork state flows to a local watcher, then the WhatsApp Cloud API, then a verified phone">
+            <div><small>LOCAL</small><strong>Deepwork state</strong></div><i></i><div><small>LOCAL</small><strong>Companion watcher</strong></div><i></i><div><small>META</small><strong>Cloud API</strong></div><i></i><div><small>USER</small><strong>Verified phone</strong></div>
+          </div>
+        </div>
+
+        <div class="route-panel" id="route-control" role="tabpanel" aria-labelledby="route-control-tab" data-route-panel="control" hidden>
+          <div class="route-copy"><span class="route-label route-label-warn">SEPARATE APPLICATION</span><h3>Build a narrow job service, not a chat-shaped terminal.</h3><p>A true two-way channel needs its own webhook API, authentication, durable job store, queue, isolated worker, GitHub identity, approvals, and response sender. It must orchestrate Deepwork explicitly.</p><ul><li>Accept strict commands, never arbitrary shell text</li><li>Require approval for writes, deploys, migrations, and secrets</li><li>Run every repository job in a low-privilege disposable worker</li><li>Return evidence and pull-request links instead of raw host access</li></ul></div>
+          <div class="flow-diagram flow-stack" role="img" aria-label="WhatsApp webhook passes through verification, action parser, queue and database, isolated worker, Deepwork gate, and status response">
+            <div><small>INGRESS</small><strong>WhatsApp webhook</strong></div><i></i><div><small>TRUST</small><strong>Signature + sender verification</strong></div><i></i><div><small>CONTROL</small><strong>Strict parser + approval policy</strong></div><i></i><div><small>STATE</small><strong>Queue + database</strong></div><i></i><div><small>EXECUTION</small><strong>Isolated repo worker + Deepwork</strong></div><i></i><div><small>EGRESS</small><strong>Redacted status response</strong></div>
+          </div>
+        </div>
+
+        <div class="whatsapp-build-grid">
+          <article data-search-card>
+            <span class="build-index">01</span><div class="feature-icon"><svg aria-hidden="true"><use href="#icon-message"/></svg></div>
+            <h3>Meta setup</h3>
+            <p>Create a Meta app with WhatsApp, connect a business phone number, configure an HTTPS webhook, subscribe to message events, and store tokens outside source control.</p>
+          </article>
+          <article data-search-card>
+            <span class="build-index">02</span><div class="feature-icon"><svg aria-hidden="true"><use href="#icon-shield"/></svg></div>
+            <h3>Verify every request</h3>
+            <p>Validate the webhook challenge and request signature, reject replayed events, allowlist senders, and enforce idempotency before creating a job.</p>
+          </article>
+          <article data-search-card>
+            <span class="build-index">03</span><div class="feature-icon"><svg aria-hidden="true"><use href="#icon-database"/></svg></div>
+            <h3>Persist narrow state</h3>
+            <p>Store task ID, sender, repository allowlist key, status, approval state, idempotency key, timestamps, and redacted evidence—not repository contents or secrets.</p>
+          </article>
+          <article data-search-card>
+            <span class="build-index">04</span><div class="feature-icon"><svg aria-hidden="true"><use href="#icon-layers"/></svg></div>
+            <h3>Isolate execution</h3>
+            <p>Use a fresh low-privilege worker per job, a least-privilege GitHub App, an explicit branch, bounded time and cost, and a final pull request for human review.</p>
+          </article>
+        </div>
+
+        <div class="command-contract">
+          <div class="command-copy"><span class="card-kicker">SAFE MESSAGE CONTRACT</span><h3>Small verbs. Explicit identity. Visible approval.</h3><p>A parser should reject everything outside the documented grammar. Free-form context can be attached to a task, but it must never become a shell command.</p></div>
+          <div class="message-demo">
+            <div class="message inbound"><span>YOU</span><p>build repo:acme/shop issue:123</p><small>09:41</small></div>
+            <div class="message outbound"><span>BOT</span><p>Task DW-482 prepared on branch bot/issue-123. Reply <strong>approve DW-482</strong> to permit repository writes, or <strong>cancel DW-482</strong>.</p><small>09:41</small></div>
+            <div class="message inbound"><span>YOU</span><p>approve DW-482</p><small>09:42</small></div>
+            <div class="message outbound"><span>BOT</span><p>DW-482 is Partially verified. Tests passed; deployment was not requested. Review PR #57.</p><small>09:49</small></div>
+          </div>
+        </div>
+
+        <div class="deployment-matrix">
+          <div class="matrix-head"><span>COMPONENT</span><span>GOOD HOST</span><span>WHY</span><span>STATUS HERE</span></div>
+          <div><strong>Documentation</strong><span>GitHub Pages</span><p>Static, public, versioned with the source.</p><em class="status-live">DEPLOYED</em></div>
+          <div><strong>Local Deepwork MCP</strong><span>Your Windows machine</span><p>Needs local filesystem and Windsurf `stdio` access.</p><em class="status-live">INCLUDED</em></div>
+          <div><strong>WhatsApp webhook API</strong><span>Heroku, Render, Fly.io, or Cloud Run</span><p>Public HTTPS ingress and secret management.</p><em class="status-guide">BLUEPRINT</em></div>
+          <div><strong>Job database</strong><span>Managed PostgreSQL</span><p>Durable idempotency, approval, and status records.</p><em class="status-guide">BLUEPRINT</em></div>
+          <div><strong>Repository worker</strong><span>Disposable VM/container runner</span><p>Isolates untrusted code from the webhook service.</p><em class="status-guide">BLUEPRINT</em></div>
+        </div>
+
+        <div class="source-links">
+          <a href="https://developers.facebook.com/docs/whatsapp/cloud-api/get-started" target="_blank" rel="noopener noreferrer"><span>Meta documentation</span><strong>WhatsApp Cloud API setup</strong><svg aria-hidden="true"><use href="#icon-external"/></svg></a>
+          <a href="https://www.postman.com/meta/whatsapp-business-platform/folder/lboq68h/webhooks" target="_blank" rel="noopener noreferrer"><span>Meta’s official Postman workspace</span><strong>Webhook reference</strong><svg aria-hidden="true"><use href="#icon-external"/></svg></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-shell section-block" id="security" aria-labelledby="security-title">
+      <div class="section-heading split-heading">
+        <div><span class="section-index">07 / SECURITY</span><h2 id="security-title">Defense in depth.<br>Not a magic sandbox.</h2></div>
+        <p>Deepwork constrains, detects, records, and refuses. It does not change the operating-system identity of Windsurf or make repository-controlled tests harmless.</p>
+      </div>
+
+      <div class="security-layout">
+        <div class="security-controls">
+          <article data-search-card><span>PATH</span><h3>Canonical containment</h3><p>Reject workspace escapes, protected paths, unsafe links, hardlinks, special files, and mid-scan changes.</p></article>
+          <article data-search-card><span>COMMAND</span><h3>Fail-closed policy</h3><p>Allow read-only terminal inspection; block network, deploy, destructive, chained, installer, and inline-interpreter forms.</p></article>
+          <article data-search-card><span>MCP</span><h3>Foreign tools denied</h3><p>Non-Deepwork MCP calls remain blocked unless the exact lowercase `server/tool` is deliberately allowlisted.</p></article>
+          <article data-search-card><span>STATE</span><h3>Trajectory-bound evidence</h3><p>Append-only state, task identity, and content fingerprints prevent proof reuse after later edits.</p></article>
+        </div>
+        <aside class="security-boundaries">
+          <span class="card-kicker">STILL OUTSIDE THE BOUNDARY</span>
+          <h3>What Deepwork cannot fix</h3>
+          <ul>
+            <li>Provider outages, editor crashes, billing, refunds, or finite model context</li>
+            <li>Enterprise MCP policy or hosted model availability</li>
+            <li>Native Arena launch or model selection through MCP</li>
+            <li>Repository code that abuses the user’s OS permissions during a test</li>
+            <li>Filesystem time-of-check/time-of-use races</li>
+            <li>Unpatched host-editor vulnerabilities</li>
+          </ul>
+          <a class="text-link" href="https://github.com/saisharan0103/windsurf-deepwork/blob/main/SECURITY.md" target="_blank" rel="noopener noreferrer">Read the security policy <svg aria-hidden="true"><use href="#icon-arrow"/></svg></a>
+        </aside>
+      </div>
+
+      <div class="risk-callout"><svg aria-hidden="true"><use href="#icon-alert"/></svg><p><strong>Untrusted repository?</strong> Turn off automatic command execution, remove secrets from the environment, and use a disposable low-privilege VM or container. Hooks are policy checks, not kernel mediation.</p></div>
+    </section>
+
+    <section class="section-band" id="troubleshooting" aria-labelledby="troubleshooting-title">
+      <div class="section-shell section-block">
+        <div class="section-heading split-heading">
+          <div><span class="section-index">08 / SUPPORT</span><h2 id="troubleshooting-title">Diagnose the gate,<br>don’t work around it.</h2></div>
+          <div class="docs-search-wrap">
+            <label for="docs-search">Filter support topics</label>
+            <div class="docs-search-field"><svg aria-hidden="true"><use href="#icon-search"/></svg><input id="docs-search" type="search" placeholder="Try “MCP missing” or “Arena”" autocomplete="off"><kbd>/</kbd></div>
+            <span id="search-status" aria-live="polite">Showing all topics</span>
+          </div>
+        </div>
+
+        <div class="faq-list">
+          <details data-search-card>
+            <summary><span>01</span><strong>The Deepwork MCP does not appear in Cascade.</strong><svg aria-hidden="true"><use href="#icon-arrow"/></svg></summary>
+            <div><p>Reload Windsurf, inspect `~\.codeium\windsurf\mcp_config.json`, run the installed doctor, and check whether the Enterprise administrator enabled or allowlisted the exact `deepwork` server configuration.</p><pre><code>node "$HOME\.codeium\windsurf\deepwork-runtime\src\cli.js" doctor</code></pre></div>
+          </details>
+          <details data-search-card>
+            <summary><span>02</span><strong>A repository write is blocked.</strong><svg aria-hidden="true"><use href="#icon-arrow"/></svg></summary>
+            <div><p>Complete `task_begin`, `inspect_repository`, `record_plan`, and the required unique reads first. The hook is enforcing the intended order.</p></div>
+          </details>
+          <details data-search-card>
+            <summary><span>03</span><strong>A test or build command is blocked in the terminal.</strong><svg aria-hidden="true"><use href="#icon-arrow"/></svg></summary>
+            <div><p>Record the exact command in the task plan and run it through `deepwork.run_verification`. Direct terminal access is deliberately limited to read-only inspection.</p></div>
+          </details>
+          <details data-search-card>
+            <summary><span>04</span><strong>A different MCP tool is denied.</strong><svg aria-hidden="true"><use href="#icon-arrow"/></svg></summary>
+            <div><p>Review the tool’s trust boundary, then allowlist only its exact lowercase `server/tool` identity through `DEEPWORK_ALLOWED_MCP_TOOLS`. Keep the list minimal.</p></div>
+          </details>
+          <details data-search-card>
+            <summary><span>05</span><strong>The final gate returns REFUSE or PARTIAL.</strong><svg aria-hidden="true"><use href="#icon-arrow"/></svg></summary>
+            <div><p>Rerun every planned command after the latest write, remove out-of-scope changes, provide typed evidence for each criterion, and confirm current fingerprints. Manual evidence or unavailable Git keeps the result partial.</p></div>
+          </details>
+          <details data-search-card>
+            <summary><span>06</span><strong>The installer refuses to overwrite an existing artifact.</strong><svg aria-hidden="true"><use href="#icon-arrow"/></svg></summary>
+            <div><p>The installed file changed or ownership could not be proved. Preserve the change and inspect `deepwork-install.json` plus the ownership backups. Do not delete config just to force installation.</p></div>
+          </details>
+          <details data-search-card>
+            <summary><span>07</span><strong>Can I host the MCP on Heroku?</strong><svg aria-hidden="true"><use href="#icon-arrow"/></svg></summary>
+            <div><p>Not as a drop-in replacement for this release. The current MCP uses local `stdio` and needs the repository filesystem. A remote HTTP transport would require authentication, tenant isolation, repository provisioning, secret management, and a redesigned security boundary.</p></div>
+          </details>
+          <details data-search-card>
+            <summary><span>08</span><strong>Can WhatsApp select models or start Arena?</strong><svg aria-hidden="true"><use href="#icon-arrow"/></svg></summary>
+            <div><p>No documented Windsurf MCP interface does that. A WhatsApp companion can accept tasks and return status, while native Arena still starts manually unless a future supported API changes that boundary.</p></div>
+          </details>
+        </div>
+
+        <div class="search-empty" id="search-empty" hidden><svg aria-hidden="true"><use href="#icon-search"/></svg><h3>No matching topic</h3><p>Try a shorter term such as “MCP”, “test”, “install”, “Arena”, or “WhatsApp”.</p></div>
+      </div>
+    </section>
+
+    <section class="section-shell final-cta" aria-labelledby="final-title">
+      <div class="final-cta-mark" aria-hidden="true"><svg><use href="#icon-check"/></svg></div>
+      <span class="section-index">READY WHEN THE EVIDENCE IS</span>
+      <h2 id="final-title">Install locally.<br>Work deliberately.</h2>
+      <p>Use GitHub for distribution, Pages for the guide, Windsurf for the local client, and the final gate for the truth.</p>
+      <div class="hero-actions">
+        <a class="button button-primary" href="https://github.com/saisharan0103/windsurf-deepwork" target="_blank" rel="noopener noreferrer"><svg aria-hidden="true"><use href="#icon-github"/></svg> Open repository</a>
+        <a class="button button-secondary" href="#quick-start">Read installation</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="section-shell footer-grid">
+      <div><a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"><svg><use href="#icon-check"/></svg></span><span>deepwork<span class="brand-cursor">_</span></span></a><p>An independent, evidence-first quality layer for Windsurf Cascade.</p></div>
+      <div><strong>Project</strong><a href="https://github.com/saisharan0103/windsurf-deepwork" target="_blank" rel="noopener noreferrer">Repository</a><a href="https://github.com/saisharan0103/windsurf-deepwork/issues" target="_blank" rel="noopener noreferrer">Issues</a><a href="https://github.com/saisharan0103/windsurf-deepwork/blob/main/SECURITY.md" target="_blank" rel="noopener noreferrer">Security</a></div>
+      <div><strong>Official references</strong><a href="https://docs.devin.ai/desktop/cascade/mcp" target="_blank" rel="noopener noreferrer">Cascade MCP</a><a href="https://docs.devin.ai/desktop/cascade/arena" target="_blank" rel="noopener noreferrer">Arena Mode</a><a href="https://docs.github.com/en/pages" target="_blank" rel="noopener noreferrer">GitHub Pages</a></div>
+      <div><strong>Important</strong><p>Publicly visible, but no software license has been selected. Not affiliated with or endorsed by Cognition, Windsurf, or Devin.</p></div>
+    </div>
+    <div class="section-shell footer-bottom"><span>Built for verifiable outcomes.</span><a href="#top">Back to top <svg aria-hidden="true"><use href="#icon-arrow"/></svg></a></div>
+  </footer>
+
+  <div class="toast" id="copy-toast" role="status" aria-live="polite" aria-atomic="true">Copied to clipboard</div>
+  <script src="app.js" defer></script>
+</body>
+</html>

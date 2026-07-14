@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deep Build"
+  short_description: "Evidence-first multi-model engineering"
+  default_prompt: "Use $deep-build to inspect, plan, implement, and verify this coding task without rushing."
