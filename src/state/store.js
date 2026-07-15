@@ -258,7 +258,12 @@ export class WorkspaceStateStore {
 export function deriveTaskState(taskId, events) {
   const begun = events.find((event) => event.type === "TASK_BEGUN") || null;
   const inspection = events.findLast((event) => event.type === "INSPECTION_COMPLETED") || null;
+  const research = events.findLast((event) => event.type === "RESEARCH_RECORDED") || null;
+  const design = events.findLast((event) => event.type === "DESIGN_RECORDED") || null;
   const plan = events.findLast((event) => event.type === "PLAN_RECORDED") || null;
+  const checkpoints = events.filter((event) => event.type === "CHECKPOINT_RECORDED");
+  const reviews = events.filter((event) => event.type === "REVIEW_RECORDED");
+  const review = reviews.at(-1) || null;
   const verifications = events.filter((event) => event.type === "VERIFICATION_COMPLETED" || event.type === "VERIFICATION_SKIPPED");
   const gate = events.findLast((event) => event.type === "FINAL_GATE_EVALUATED") || null;
   const reads = [...new Set(events.filter((event) => event.type === "HOOK_READ").map((event) => event.path))].sort();
@@ -267,12 +272,20 @@ export function deriveTaskState(taskId, events) {
   let stage = "not_started";
   if (begun) stage = "begun";
   if (inspection) stage = "inspected";
+  if (research) stage = "researched";
+  if (design) stage = "designed";
   if (plan) stage = "planned";
+  if (checkpoints.length) stage = "checkpointed";
+  if (review) stage = "reviewed";
   if (verifications.length) stage = "verified";
   const gateIndex = events.findLastIndex((event) => event.type === "FINAL_GATE_EVALUATED");
   const invalidatingIndex = Math.max(
     events.findLastIndex((event) => event.type === "HOOK_WRITE"),
+    events.findLastIndex((event) => event.type === "RESEARCH_RECORDED"),
+    events.findLastIndex((event) => event.type === "DESIGN_RECORDED"),
     events.findLastIndex((event) => event.type === "PLAN_RECORDED"),
+    events.findLastIndex((event) => event.type === "CHECKPOINT_RECORDED"),
+    events.findLastIndex((event) => event.type === "REVIEW_RECORDED"),
     events.findLastIndex((event) => event.type === "VERIFICATION_COMPLETED" || event.type === "VERIFICATION_SKIPPED")
   );
   if (gate?.decision === "PASS" && gateIndex > invalidatingIndex) stage = "passed";
@@ -287,12 +300,19 @@ export function deriveTaskState(taskId, events) {
       constraints: begun.constraints || [],
       allowedPaths: begun.allowedPaths || [],
       protectedPaths: begun.protectedPaths || [],
-      assumptions: begun.assumptions || []
+      assumptions: begun.assumptions || [],
+      completionCondition: begun.completionCondition || "",
+      effortProfile: begun.effortProfile || "standard"
     } : null,
     stage,
     begun,
     inspection,
+    research,
+    design,
     plan,
+    checkpoints,
+    reviews,
+    review,
     verifications,
     gate,
     reads,

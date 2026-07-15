@@ -1,4 +1,4 @@
 interface:
   display_name: "Deep Build"
-  short_description: "Evidence-first multi-model engineering"
-  default_prompt: "Use $deep-build to inspect, plan, implement, and verify this coding task without rushing."
+  short_description: "Max-effort evidence-gated engineering"
+  default_prompt: "Use $deep-build at max effort to research, compare designs, plan, implement, review, and verify this coding task without rushing."

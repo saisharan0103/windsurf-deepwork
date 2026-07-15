@@ -55,6 +55,7 @@ try {
     Write-TestText -Path (Join-Path $windsurf 'skills\deep-build\original.txt') -Text 'original skill'
     Write-TestText -Path (Join-Path $windsurf 'global_workflows\deep-build.md') -Text 'original deep build workflow'
     Write-TestText -Path (Join-Path $windsurf 'global_workflows\deep-review.md') -Text 'original deep review workflow'
+    Write-TestText -Path (Join-Path $windsurf 'global_workflows\deep-plan.md') -Text 'original deep plan workflow'
     $originalRules = "user-before`r`n<!-- deepwork:start -->`r`n<previous-owner />`r`n<!-- deepwork:end -->`r`nuser-after`r`n"
     Write-TestText -Path (Join-Path $windsurf 'memories\global_rules.md') -Text $originalRules
     Write-TestJson -Path (Join-Path $windsurf 'hooks.json') -Value ([ordered]@{
@@ -86,6 +87,9 @@ try {
     $mcp = Get-Content -Raw -LiteralPath (Join-Path $windsurf 'mcp_config.json') | ConvertFrom-Json
     Assert-Test ($mcp.mcpServers.other.command -eq 'other-command') 'unrelated MCP server was lost'
     Assert-Test ($mcp.mcpServers.deepwork.command -like '*node.exe') 'managed MCP command is not absolute node.exe'
+    foreach ($workflowName in @('deep-build.md', 'deep-review.md', 'deep-plan.md', 'deep-debug.md')) {
+        Assert-Test (Test-Path -LiteralPath (Join-Path $windsurf ('global_workflows\' + $workflowName))) "managed workflow was not installed: $workflowName"
+    }
 
     # Add unrelated post-install changes. Uninstall must retain them while restoring collisions.
     $hooks | Add-Member -NotePropertyName unrelatedAfter -NotePropertyValue 'post-install-hook-data'
@@ -102,6 +106,9 @@ try {
     Assert-Test (-not (Test-Path -LiteralPath $manifestPath)) 'manifest remained after complete uninstall'
     Assert-Test ((Get-Content -Raw -LiteralPath (Join-Path $windsurf 'skills\deep-build\original.txt')) -eq 'original skill') 'predecessor skill was not restored'
     Assert-Test ((Get-Content -Raw -LiteralPath (Join-Path $windsurf 'global_workflows\deep-build.md')) -eq 'original deep build workflow') 'predecessor workflow was not restored'
+    Assert-Test ((Get-Content -Raw -LiteralPath (Join-Path $windsurf 'global_workflows\deep-review.md')) -eq 'original deep review workflow') 'predecessor review workflow was not restored'
+    Assert-Test ((Get-Content -Raw -LiteralPath (Join-Path $windsurf 'global_workflows\deep-plan.md')) -eq 'original deep plan workflow') 'predecessor plan workflow was not restored'
+    Assert-Test (-not (Test-Path -LiteralPath (Join-Path $windsurf 'global_workflows\deep-debug.md'))) 'new workflow survived uninstall without a predecessor'
     $restoredRules = Get-Content -Raw -LiteralPath (Join-Path $windsurf 'memories\global_rules.md')
     Assert-Test ($restoredRules -match '<previous-owner />') 'predecessor managed rule block was not restored'
     Assert-Test ($restoredRules -match 'post-install-rule') 'unrelated post-install rule was lost'
