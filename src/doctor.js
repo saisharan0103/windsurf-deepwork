@@ -58,12 +58,12 @@ async function mcpSelfTest(root, stateHome) {
     env: { ...getDefaultEnvironment(), DEEPWORK_STATE_HOME: stateHome },
     stderr: "pipe"
   });
-  const client = new Client({ name: "deepwork-doctor", version: "0.1.0" }, { capabilities: {} });
+  const client = new Client({ name: "deepwork-doctor", version: "0.2.0" }, { capabilities: {} });
   try {
     await withTimeout(client.connect(transport), 5_000, "MCP initialize");
     const listed = await withTimeout(client.listTools(), 5_000, "MCP listTools");
     const names = (listed.tools || []).map((tool) => tool.name).sort();
-    const expected = ["final_gate", "inspect_repository", "record_plan", "run_verification", "task_begin", "task_status"];
+    const expected = ["final_gate", "inspect_repository", "record_checkpoint", "record_design", "record_plan", "record_research", "record_review", "run_verification", "task_begin", "task_status"];
     if (JSON.stringify(names) !== JSON.stringify(expected)) throw new Error(`unexpected MCP tools: ${names.join(", ")}`);
   } finally {
     await withTimeout(client.close(), 3_000, "MCP close").catch(() => transport.close().catch(() => {}));

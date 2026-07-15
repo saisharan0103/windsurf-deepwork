@@ -7,7 +7,7 @@ import { createDeepworkServer, TOOL_NAMES } from "../src/server.js";
 import { runDoctor } from "../src/doctor.js";
 import { temporaryWorkspace } from "./helpers.js";
 
-test("MCP server identifies as deepwork and exposes exactly six tools", async (t) => {
+test("MCP server identifies as deepwork and exposes exactly ten tools", async (t) => {
   const root = await temporaryWorkspace(t);
   const { server } = await createDeepworkServer({ baseRoot: root });
   const [serverTransport, clientTransport] = InMemoryTransport.createLinkedPair();
@@ -21,7 +21,7 @@ test("MCP server identifies as deepwork and exposes exactly six tools", async (t
   assert.equal(client.getServerVersion().name, "deepwork");
   const response = await client.listTools();
   assert.deepEqual(response.tools.map((tool) => tool.name), [...TOOL_NAMES]);
-  assert.equal(response.tools.length, 6);
+  assert.equal(response.tools.length, 10);
   const taskBegin = response.tools.find((tool) => tool.name === "task_begin");
   assert.ok(taskBegin.inputSchema.required.includes("workspaceRoot"));
   assert.ok(taskBegin.inputSchema.required.includes("taskId"));

@@ -9,6 +9,7 @@ import { WorkspaceStateStore } from "./state/store.js";
 import { writeTranscriptAudit } from "./audit/transcript-audit.js";
 import { TOOL_NAMES } from "./server.js";
 import { contractPathViolation } from "./security/scope-policy.js";
+import { requirementsFor } from "./effort.js";
 
 const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -203,8 +204,13 @@ export async function handleHook({ phase, payload = {}, cwd = process.cwd(), env
       if (!state?.begun || !state?.inspection || !state?.plan) {
         return block("Write blocked: task_begin, inspect_repository, and record_plan must complete first.");
       }
+      const effort = state.contract?.effortProfile || "standard";
+      const requirements = requirementsFor(effort);
+      if (requirements.researchLanes > 0 && (!state.research || !state.design)) {
+        return block(`Write blocked: ${effort} effort requires record_research and record_design before implementation.`);
+      }
       const repositoryFileCount = Number(state.inspection?.inventory?.fileInventory?.count || 0);
-      const requiredReads = Math.min(3, repositoryFileCount);
+      const requiredReads = Math.min(requirements.uniqueReads, repositoryFileCount);
       const successfulReads = new Set(state.reads || []).size;
       if (successfulReads < requiredReads) {
         return block(`Write blocked: inspect at least ${requiredReads} unique repository file(s) successfully first (${successfulReads} recorded).`);
